@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Recibo da Hora — Calculadora de valor-hora</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F2ECDD;
+    --paper-dark:#E7DFC9;
+    --ink:#1F2E2A;
+    --ink-soft:#4A5750;
+    --teal:#2F5D50;
+    --teal-dark:#203F37;
+    --gold:#C79A3D;
+    --line:#C9BE9E;
+    --danger:#A8452F;
+    --shadow: 0 12px 30px -12px rgba(31,46,42,0.35);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper-dark);
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(31,46,42,0.06) 1px, transparent 0);
+    background-size: 18px 18px;
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:0;
+  }
+  .app{
+    width:100%;
+    max-width:460px;
+    min-height:100vh;
+    background:var(--paper);
+    box-shadow:var(--shadow);
+    display:flex;
+    flex-direction:column;
+    position:relative;
+  }
+  header.topbar{
+    padding:22px 24px 14px;
+    border-bottom:1px solid var(--line);
+  }
+  .brand{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:22px;
+    letter-spacing:-0.01em;
+    color:var(--teal-dark);
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+  }
+  .brand small{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    font-weight:500;
+    color:var(--ink-soft);
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+  }
+  .steps{
+    display:flex;
+    gap:6px;
+    margin-top:14px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+  }
+  .steps span{
+    flex:1;
+    text-align:center;
+    padding:6px 2px;
+    border-radius:3px;
+    color:var(--ink-soft);
+    background:var(--paper-dark);
+    border:1px solid transparent;
+  }
+  .steps span.active{
+    background:var(--teal);
+    color:#fff;
+  }
+  .steps span.done{
+    background:var(--paper-dark);
+    color:var(--teal-dark);
+    border-color:var(--teal);
+  }
+  main{
+    flex:1;
+    padding:26px 24px 40px;
+  }
+  .screen{ display:none; animation:fadein .25s ease; }
+  .screen.active{ display:block; }
+  @keyframes fadein{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+  h1.title{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:26px;
+    line-height:1.15;
+    margin:0 0 6px;
+    color:var(--teal-dark);
+  }
+  p.sub{
+    margin:0 0 24px;
+    color:var(--ink-soft);
+    font-size:14.5px;
+    line-height:1.5;
+  }
+  label{
+    display:block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .field{ margin-bottom:18px; }
+  input[type=text], input[type=email], input[type=tel], input[type=number]{
+    width:100%;
+    padding:13px 14px;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    background:#fff;
+    font-family:'Inter', sans-serif;
+    font-size:15.5px;
+    color:var(--ink);
+  }
+  input:focus{
+    outline:none;
+    border-color:var(--teal);
+    box-shadow:0 0 0 3px rgba(47,93,80,0.15);
+  }
+  .row2{ display:flex; gap:12px; }
+  .row2 .field{ flex:1; }
+
+  .salary-box{
+    background:linear-gradient(135deg, var(--teal) 0%, var(--teal-dark) 100%);
+    border-radius:10px;
+    padding:16px 16px 18px;
+    margin-bottom:22px;
+    box-shadow:0 8px 20px -8px rgba(31,46,42,0.4);
+  }
+  .salary-box label{
+    color:#fff;
+    opacity:0.9;
+    font-size:12px;
+  }
+  .salary-box input{
+    background:#fff;
+    border:none;
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:20px;
+    color:var(--teal-dark);
+  }
+  .salary-box input:focus{
+    box-shadow:0 0 0 3px rgba(199,154,61,0.5);
+  }
+
+  select{
+    width:100%;
+    padding:13px 14px;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    background:#fff;
+    font-family:'Inter', sans-serif;
+    font-size:15.5px;
+    color:var(--ink);
+    appearance:none;
+    -webkit-appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234A5750' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 12px center;
+    background-size:18px;
+  }
+  select:focus{
+    outline:none;
+    border-color:var(--teal);
+    box-shadow:0 0 0 3px rgba(47,93,80,0.15);
+  }
+  .toggle-group{
+    display:flex;
+    gap:10px;
+  }
+  .toggle-btn{
+    flex:1;
+    padding:12px;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    background:#fff;
+    color:var(--ink-soft);
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:14.5px;
+    cursor:pointer;
+  }
+  .toggle-btn.active{
+    background:var(--teal);
+    border-color:var(--teal);
+    color:#fff;
+  }
+  .fixed-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 0;
+    border-bottom:1px dashed var(--line);
+  }
+  .fixed-item .fname{ flex:1; }
+  .fixed-item input[type=text]{ padding:8px 10px; font-size:14px; }
+  .fixed-item .fval{ width:130px; }
+  .fixed-item .fval input{ padding:8px 10px; font-size:14px; text-align:right; font-family:'IBM Plex Mono', monospace; }
+  .fixed-item button.remove{
+    border:none; background:none; color:var(--danger); font-size:18px; line-height:1; cursor:pointer; padding:4px 6px;
+  }
+  .add-item{
+    margin-top:12px;
+    width:100%;
+    padding:12px;
+    border:1.5px dashed var(--teal);
+    background:none;
+    border-radius:8px;
+    color:var(--teal-dark);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    cursor:pointer;
+  }
+  .subtotal-line{
+    display:flex; justify-content:space-between; align-items:baseline;
+    margin-top:20px; padding-top:14px; border-top:2px solid var(--ink);
+    font-family:'IBM Plex Mono', monospace;
+  }
+  .subtotal-line .lab{ font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); }
+  .subtotal-line .val{ font-size:19px; font-weight:600; color:var(--teal-dark); }
+
+  .resumo-box .subtotal-line.sub2{
+    margin-top:10px; padding-top:10px; border-top:1px dashed var(--line);
+  }
+  .resumo-box .subtotal-line.sub2 .lab{ font-size:11px; }
+  .resumo-box .subtotal-line.sub2 .val{ font-size:15px; color:var(--ink); }
+  .resumo-box .subtotal-line.sub-final{
+    margin-top:12px; padding-top:14px; border-top:2px solid var(--teal);
+  }
+  .resumo-box .subtotal-line.sub-final .lab{ color:var(--teal-dark); font-weight:600; }
+  .resumo-box .subtotal-line.sub-final .val{ font-size:21px; color:var(--teal); }
+
+  #diferenca-total.positivo{
+    color:#1F7A3D;
+    background:#DEF5E0;
+    padding:3px 12px;
+    border-radius:6px;
+    font-weight:700;
+  }
+  #diferenca-total.negativo{
+    color:#fff;
+    background:#7A0C0C;
+    padding:3px 12px;
+    border-radius:6px;
+    font-weight:700;
+  }
+
+  .hours-preview{
+    background:var(--paper-dark);
+    border-radius:10px;
+    padding:16px;
+    margin-top:6px;
+    font-family:'IBM Plex Mono', monospace;
+  }
+  .hours-preview .line{ display:flex; justify-content:space-between; font-size:13px; padding:3px 0; color:var(--ink-soft); }
+  .hours-preview .line.total{ color:var(--teal-dark); font-weight:600; font-size:15px; border-top:1px dashed var(--line); margin-top:6px; padding-top:8px; }
+
+  .btn{
+    width:100%;
+    padding:15px;
+    border:none;
+    border-radius:9px;
+    background:var(--teal);
+    color:#fff;
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:15.5px;
+    cursor:pointer;
+    margin-top:8px;
+    transition:transform .1s ease, background .15s ease;
+  }
+  .btn:active{ transform:scale(0.98); }
+  .btn:hover{ background:var(--teal-dark); }
+  .btn.ghost{
+    background:none;
+    border:1.5px solid var(--line);
+    color:var(--ink-soft);
+    margin-top:10px;
+  }
+  .btn.ghost:hover{ border-color:var(--teal); color:var(--teal-dark); background:none; }
+  .btn:focus-visible, input:focus-visible, .add-item:focus-visible{
+    outline:3px solid var(--gold);
+    outline-offset:2px;
+  }
+
+  .receipt{
+    position:relative;
+    background:#fff;
+    border-radius:2px;
+    padding:28px 22px 24px;
+    margin-top:10px;
+    box-shadow:0 8px 24px -10px rgba(31,46,42,0.3);
+  }
+  .receipt::before{
+    content:"";
+    position:absolute;
+    top:-1px; left:0; right:0; height:14px;
+    background: radial-gradient(circle at 12px 7px, var(--paper) 8px, transparent 8.5px) repeat-x;
+    background-size:24px 14px;
+  }
+  .receipt .r-head{
+    text-align:center;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    border-bottom:1px dashed var(--line);
+    padding-bottom:14px;
+    margin-bottom:14px;
+  }
+  .r-line{
+    display:flex; justify-content:space-between; gap:10px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    padding:5px 0;
+    color:var(--ink-soft);
+  }
+  .r-line b{ color:var(--ink); font-weight:600; }
+  .r-final{
+    text-align:center;
+    margin:18px 0 6px;
+    padding:18px 10px;
+    background:var(--teal);
+    border-radius:10px;
+    color:#fff;
+  }
+  .r-final .lab{ font-family:'IBM Plex Mono', monospace; font-size:11px; text-transform:uppercase; letter-spacing:.08em; opacity:0.85; }
+  .r-final .num{ font-family:'Fraunces', serif; font-weight:700; font-size:38px; margin-top:4px; }
+  .r-final .num sup{ font-size:18px; font-family:'IBM Plex Mono', monospace; font-weight:500; }
+  .stamp{
+    position:absolute;
+    top:20px; right:18px;
+    width:58px; height:58px;
+    border:2px solid var(--gold);
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    transform:rotate(-12deg);
+    color:var(--gold);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:9px;
+    font-weight:700;
+    text-align:center;
+    letter-spacing:.04em;
+    line-height:1.2;
+  }
+  .field-error{
+    display:none;
+    font-size:12px;
+    color:var(--danger);
+    margin:6px 0 0;
+    font-family:'Inter', sans-serif;
+  }
+  .field-error.show{ display:block; }
+  input.invalid{
+    border-color:var(--danger);
+    background:#FDF3F1;
+  }
+  .helper{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    line-height:1.5;
+    margin-top:4px;
+  }
+  .helper a{ color:var(--teal); font-weight:600; text-decoration:underline; }
+  .top-back{
+    background:none; border:none; color:var(--ink-soft); font-family:'IBM Plex Mono', monospace;
+    font-size:12px; cursor:pointer; padding:0; margin-bottom:16px; display:flex; align-items:center; gap:4px;
+  }
+  .top-back:hover{ color:var(--teal-dark); }
+
+  .modal-overlay{
+    display:none;
+    position:fixed; inset:0;
+    background:rgba(31,46,42,0.6);
+    z-index:50;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  .modal-overlay.show{ display:flex; }
+  .modal-box{
+    background:#fff;
+    border-radius:12px;
+    padding:26px 22px;
+    max-width:380px;
+    width:100%;
+    box-shadow:0 20px 50px -12px rgba(0,0,0,0.45);
+    animation:fadein .2s ease;
+  }
+  .modal-box p{ font-size:14.5px; color:var(--ink); line-height:1.55; margin:0 0 18px; }
+  .modal-box-wide{ max-width:420px; max-height:78vh; display:flex; flex-direction:column; }
+  .modal-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-shrink:0; }
+  .modal-header h3{ font-family:'Fraunces', serif; font-size:19px; margin:0; color:var(--teal-dark); }
+  .modal-close{ border:none; background:none; font-size:24px; line-height:1; color:var(--ink-soft); cursor:pointer; padding:2px 8px; }
+  .modal-close:hover{ color:var(--danger); }
+  #historico-lista{ overflow-y:auto; }
+  .hist-item{
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:12px 14px;
+    margin-bottom:10px;
+    font-size:12.5px;
+    background:var(--paper-dark);
+    line-height:1.6;
+  }
+  .hist-item .hist-data{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:var(--ink-soft); margin-bottom:6px; }
+  .hist-item .hist-nome{ font-weight:700; color:var(--ink); margin-bottom:2px; font-family:'Fraunces', serif; font-size:14.5px; }
+  .hist-item .hist-valor{ color:var(--teal-dark); font-weight:700; }
+  .hist-empty{ text-align:center; color:var(--ink-soft); font-size:13px; padding:30px 10px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">Recibo da Hora <small>valor-hora real</small></div>
+    <div class="steps" id="steps">
+      <span data-step="0">01</span>
+      <span data-step="1">02</span>
+      <span data-step="2">03</span>
+      <span data-step="3">04</span>
+      <span data-step="4">05</span>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- STEP 0: INTRO -->
+    <section class="screen active" data-screen="0">
+      <h1 class="title">Antes de começar</h1>
+      <p class="sub">Deixe seus dados de contato. Depois disso é só preencher seus custos e a calculadora entrega o valor real da sua hora de trabalho.</p>
+      <div class="field">
+        <label for="p-nome">Nome</label>
+        <input type="text" id="p-nome" placeholder="Seu nome completo" enterkeyhint="next" data-enter-next="p-email">
+        <p class="field-error" id="err-nome"></p>
+      </div>
+      <div class="field">
+        <label for="p-email">E-mail</label>
+        <input type="email" id="p-email" placeholder="voce@email.com" enterkeyhint="next" data-enter-next="p-whats">
+        <p class="field-error" id="err-email"></p>
+      </div>
+      <div class="field">
+        <label for="p-whats">WhatsApp</label>
+        <input type="tel" id="p-whats" placeholder="(11) 91234-5678" enterkeyhint="done" data-enter-action="submitIntro">
+        <p class="field-error" id="err-whats"></p>
+      </div>
+      <button class="btn" onclick="submitIntro()">Continuar</button>
+      <p class="helper" id="intro-note"></p>
+    </section>
+
+    <!-- STEP 1: HORAS -->
+    <section class="screen" data-screen="1">
+      <button class="top-back" onclick="goTo(0)">‹ voltar</button>
+      <h1 class="title">Sua jornada</h1>
+      <p class="sub">Isso define quantas horas você trabalha por mês — a base para dividir os custos.</p>
+      <div class="row2">
+        <div class="field">
+          <label for="h-dias">Quantos dias na semana?</label>
+          <input type="number" inputmode="decimal" id="h-dias" placeholder="Ex: 5" min="1" max="7" oninput="updateHoursPreview()" enterkeyhint="next" data-enter-next="h-horas">
+        </div>
+        <div class="field">
+          <label for="h-horas">Horas trabalhadas</label>
+          <input type="number" inputmode="decimal" id="h-horas" placeholder="Ex: 8" min="1" max="24" oninput="updateHoursPreview()" enterkeyhint="next" data-enter-next="h-almoco">
+        </div>
+      </div>
+      <div class="field">
+        <label for="h-mes">Mês</label>
+        <select id="h-mes" onchange="updateHoursPreview()"></select>
+      </div>
+      <div class="field">
+        <label>Você trabalha aos domingos?</label>
+        <div class="toggle-group" id="toggle-domingo">
+          <button type="button" class="toggle-btn active" data-val="nao" onclick="selecionarDomingo('nao')">Não</button>
+          <button type="button" class="toggle-btn" data-val="sim" onclick="selecionarDomingo('sim')">Sim</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="h-almoco">Horas de almoço</label>
+        <input type="text" inputmode="numeric" id="h-almoco" placeholder="Ex: 30min" oninput="updateHoursPreview()" enterkeyhint="done" data-enter-action="goToHoursNext">
+      </div>
+      <div class="hours-preview">
+        <div class="line"><span>Dias trabalhados no mês (estimado)</span><span id="prev-dias">—</span></div>
+        <div class="line"><span>Horas líquidas por dia</span><span id="prev-liquida">—</span></div>
+        <div class="line total"><span>Horas trabalhadas no mês</span><span id="prev-mes">—</span></div>
+      </div>
+      <p class="field-error" id="err-horas"></p>
+      <button class="btn" onclick="goToHoursNext()">Continuar</button>
+    </section>
+
+    <!-- STEP 2: CUSTOS FIXOS -->
+    <section class="screen" data-screen="2">
+      <button class="top-back" onclick="goTo(1)">‹ voltar</button>
+      <h1 class="title">Custos fixos</h1>
+      <p class="sub">Preencha o que se aplica ao seu negócio. Deixe em branco (ou 0) o que não usar.</p>
+
+      <div class="salary-box">
+        <label for="v-salario">Coloque seu salário aqui</label>
+        <input type="text" inputmode="numeric" id="v-salario" placeholder="0,00" oninput="handleValueInput(this)" enterkeyhint="next">
+      </div>
+
+      <div id="fixed-list"></div>
+      <button class="add-item" onclick="addCustomFixed()">+ adicionar outro custo</button>
+      <div class="resumo-box">
+        <div class="subtotal-line">
+          <span class="lab">Total custos fixos</span>
+          <span class="val" id="fixed-total">R$ 0,00</span>
+        </div>
+        <div class="subtotal-line sub2">
+          <span class="lab">Salário</span>
+          <span class="val" id="salario-total">R$ 0,00</span>
+        </div>
+        <div class="subtotal-line sub2">
+          <span class="lab">Diferença (salário − custo)</span>
+          <span class="val" id="diferenca-total">R$ 0,00</span>
+        </div>
+        <div class="subtotal-line sub-final">
+          <span class="lab">Total (custo + salário)</span>
+          <span class="val" id="soma-total">R$ 0,00</span>
+        </div>
+      </div>
+      <button class="btn" onclick="avancarParaVariavel()">Continuar</button>
+    </section>
+
+    <!-- STEP 3: CUSTO VARIÁVEL -->
+    <section class="screen" data-screen="3">
+      <button class="top-back" onclick="goTo(2)">‹ voltar</button>
+      <h1 class="title">Custo variável</h1>
+      <p class="sub">Um percentual extra sobre o custo-hora (impostos proporcionais, taxas de cartão, materiais que variam por serviço etc).</p>
+      <div class="field">
+        <label for="v-perc">Percentual (%)</label>
+        <input type="number" inputmode="decimal" id="v-perc" placeholder="Ex: 3" min="0" max="100" step="0.1" enterkeyhint="done" data-enter-action="calcularResultado">
+      </div>
+      <button class="btn" onclick="calcularResultado()">Calcule o valor das horas trabalhadas</button>
+    </section>
+
+    <!-- STEP 4: RESULTADO -->
+    <section class="screen" data-screen="4">
+      <button class="top-back" onclick="goTo(3)">‹ voltar</button>
+      <h1 class="title">Seu valor-hora</h1>
+      <div class="receipt">
+        <div class="stamp">CUSTO<br>REAL</div>
+        <div class="r-head" id="r-nome-linha">recibo de cálculo</div>
+        <div class="r-line"><span>Salário</span><b id="r-salario">—</b></div>
+        <div class="r-line"><span>Total custos fixos</span><b id="r-fixos">—</b></div>
+        <div class="r-line"><span>Horas trabalhadas no mês</span><b id="r-horas">—</b></div>
+        <div class="r-line"><span>Custo-hora sem variável</span><b id="r-base">—</b></div>
+        <div class="r-line"><span>Custo variável (<span id="r-perc-label">0</span>%)</span><b id="r-variavel">—</b></div>
+        <div class="r-final">
+          <div class="lab">valor da sua hora</div>
+          <div class="num"><sup>R$</sup> <span id="r-total">0,00</span></div>
+        </div>
+      </div>
+      <button class="btn ghost" onclick="goTo(1)">Recalcular nova hora</button>
+      <button class="btn ghost" onclick="abrirHistorico()">Histórico</button>
+    </section>
+
+  </main>
+</div>
+
+<div class="modal-overlay" id="modal-aviso">
+  <div class="modal-box">
+    <p>Caso tenham qualquer reajuste de valor, retorne e refaça o processo, pois qualquer alteração influenciará diretamente no cálculo final.</p>
+    <button class="btn" onclick="confirmarAviso()">Entendi</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-historico">
+  <div class="modal-box modal-box-wide">
+    <div class="modal-header">
+      <h3>Histórico</h3>
+      <button class="modal-close" onclick="fecharModal('modal-historico')" aria-label="fechar">×</button>
+    </div>
+    <div id="historico-lista"></div>
+  </div>
+</div>
+
+<script>
+  // ------------------------------------------------------------------
+  // CONFIGURAÇÃO DO ENVIO PARA A PLANILHA GOOGLE
+  // O app chama sua própria função-servidor (mesma origem, sem bloqueios
+  // de navegador), que por sua vez fala com o Apps Script. A URL real do
+  // Apps Script fica configurada dentro da função (netlify/functions/enviar.js),
+  // não aqui.
+  // ------------------------------------------------------------------
+  const APPS_SCRIPT_URL = '/.netlify/functions/enviar';
+
+  const DEFAULT_FIXED_ITEMS = [
+    "Aluguel", "Luz", "Água", "Telefone", "Internet",
+    "CNPJ / contador", "Sistema / software", "Empréstimo"
+  ];
+
+  let fixedCounter = 0;
+
+  function fmtBRL(n){
+    return n.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+
+  function goTo(step){
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.querySelector(`.screen[data-screen="${step}"]`).classList.add('active');
+    document.querySelectorAll('#steps span').forEach(s => {
+      const n = Number(s.dataset.step);
+      s.classList.remove('active','done');
+      if(n === step) s.classList.add('active');
+      else if(n < step) s.classList.add('done');
+    });
+    if(step === 1) updateHoursPreview();
+    window.scrollTo(0,0);
+  }
+
+  function clearError(inputId, errId){
+    document.getElementById(inputId).classList.remove('invalid');
+    const e = document.getElementById(errId);
+    e.textContent = '';
+    e.classList.remove('show');
+  }
+  function setError(inputId, errId, msg){
+    document.getElementById(inputId).classList.add('invalid');
+    const e = document.getElementById(errId);
+    e.textContent = msg;
+    e.classList.add('show');
+  }
+
+  function validarNome(v){
+    return /^[A-Za-zÀ-ÖØ-öø-ÿ'\s]{4,}$/.test(v.trim()) && v.trim().split(/\s+/).length >= 2;
+  }
+  function validarEmail(v){
+    return /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(v.trim());
+  }
+  function validarWhats(v){
+    const digitos = v.replace(/\D/g, '');
+    return digitos.length >= 10 && digitos.length <= 13;
+  }
+
+  const DESTINO_EMAIL = 'meubackupmovel@gmail.com';
+  let contato = { nome: '', email: '', whats: '' };
+  let jornada = { dias: '', horas: '', mes: '', diasNoMes: '', domingo: 'nao', almoco: '' };
+  let domingoTrabalha = 'nao';
+
+  const MESES = [
+    { nome: 'Janeiro', dias: 31 }, { nome: 'Fevereiro', dias: 28 }, { nome: 'Março', dias: 31 },
+    { nome: 'Abril', dias: 30 }, { nome: 'Maio', dias: 31 }, { nome: 'Junho', dias: 30 },
+    { nome: 'Julho', dias: 31 }, { nome: 'Agosto', dias: 31 }, { nome: 'Setembro', dias: 30 },
+    { nome: 'Outubro', dias: 31 }, { nome: 'Novembro', dias: 30 }, { nome: 'Dezembro', dias: 31 }
+  ];
+
+  function popularMeses(){
+    const sel = document.getElementById('h-mes');
+    const mesAtual = new Date().getMonth();
+    sel.innerHTML = MESES.map((m, i) =>
+      `<option value="${m.dias}" ${i === mesAtual ? 'selected' : ''}>${m.nome} (${m.dias} dias)</option>`
+    ).join('');
+  }
+
+  function selecionarDomingo(val){
+    domingoTrabalha = val;
+    document.querySelectorAll('#toggle-domingo .toggle-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.val === val);
+    });
+    updateHoursPreview();
+  }
+
+  function buildMailtoCompleto(resultado){
+    const agora = new Date().toLocaleString('pt-BR');
+    const assunto = encodeURIComponent('Novo cálculo - Recibo da Hora');
+    const corpo = encodeURIComponent(
+      `Nome: ${contato.nome}\nE-mail: ${contato.email}\nWhatsApp: ${contato.whats}\n\n` +
+      `Salário: R$ ${resultado.salario}\nTotal custos fixos: R$ ${resultado.totalFixo}\n` +
+      `Horas trabalhadas no mês: ${resultado.horasMes}h\nCusto-hora base: R$ ${resultado.custoBase}\n` +
+      `Custo variável: ${resultado.percentual}%\nValor final da hora: R$ ${resultado.valorFinal}\n` +
+      `Data: ${agora}`
+    );
+    return `mailto:${DESTINO_EMAIL}?subject=${assunto}&body=${corpo}`;
+  }
+
+  function enviarFinal(resultado){
+    if(!APPS_SCRIPT_URL) return;
+
+    const params = new URLSearchParams({
+      nome: contato.nome,
+      email: contato.email,
+      whatsapp: contato.whats,
+      salario: resultado.salario,
+      totalCustosFixos: resultado.totalFixo,
+      horasTrabalhadasNoMes: resultado.horasMes,
+      custoHoraBase: resultado.custoBase,
+      percentualVariavel: resultado.percentual,
+      valorFinalHora: resultado.valorFinal
+    });
+
+    try{
+      fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        keepalive: true,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params.toString()
+      }).catch(() => { /* silencioso, best-effort */ });
+    }catch(e){ /* silencioso */ }
+  }
+
+  function reenviarPorEmail(){
+    if(!ultimoResultado) return;
+    window.location.href = buildMailtoCompleto(ultimoResultado);
+  }
+
+  let ultimoResultado = null;
+
+  function submitIntro(){
+    const nome = document.getElementById('p-nome').value.trim();
+    const email = document.getElementById('p-email').value.trim();
+    const whats = document.getElementById('p-whats').value.trim();
+    let ok = true;
+
+    clearError('p-nome', 'err-nome');
+    clearError('p-email', 'err-email');
+    clearError('p-whats', 'err-whats');
+
+    if(!validarNome(nome)){
+      setError('p-nome', 'err-nome', 'Digite seu nome completo (nome e sobrenome).');
+      ok = false;
+    }
+    if(!validarEmail(email)){
+      setError('p-email', 'err-email', 'Digite um e-mail válido, ex: voce@email.com');
+      ok = false;
+    }
+    if(!validarWhats(whats)){
+      setError('p-whats', 'err-whats', 'Digite um WhatsApp válido, com DDD (10 a 13 dígitos).');
+      ok = false;
+    }
+    if(!ok) return;
+
+    contato = { nome, email, whats };
+
+    document.getElementById('r-nome-linha').textContent = nome ? `recibo de ${nome}` : 'recibo de cálculo';
+    goTo(1);
+  }
+
+  function calcularDiasTrabalhados(diasSemana, diasNoMesCalendario){
+    const efetivoPorSemana = diasSemana + (domingoTrabalha === 'sim' ? 1 : 0);
+    const semanasNoMes = diasNoMesCalendario / 7;
+    return efetivoPorSemana * semanasNoMes;
+  }
+
+  function goToHoursNext(){
+    const dias = document.getElementById('h-dias').value.trim();
+    const horas = document.getElementById('h-horas').value.trim();
+    const mesEl = document.getElementById('h-mes');
+    const almoco = document.getElementById('h-almoco').value.trim();
+    const errEl = document.getElementById('err-horas');
+    if(!dias || !horas || !almoco || Number(dias) <= 0 || Number(horas) <= 0){
+      errEl.textContent = 'Preencha todos os campos com valores reais (nada de zero ou em branco).';
+      errEl.classList.add('show');
+      return;
+    }
+    errEl.classList.remove('show');
+    const diasNoMes = calcularDiasTrabalhados(Number(dias), Number(mesEl.value));
+    jornada = {
+      dias, horas,
+      mes: mesEl.options[mesEl.selectedIndex].text,
+      diasNoMes: diasNoMes.toFixed(1),
+      domingo: domingoTrabalha,
+      almoco
+    };
+    goTo(2);
+  }
+
+  function avancarParaVariavel(){
+    abrirModal('modal-aviso');
+  }
+
+  function abrirModal(id){ document.getElementById(id).classList.add('show'); }
+  function fecharModal(id){ document.getElementById(id).classList.remove('show'); }
+  function confirmarAviso(){
+    fecharModal('modal-aviso');
+    goTo(3);
+  }
+
+  function parseAlmoco(v){
+    const n = parseFloat((v || '').toString().replace(/[^0-9.,]/g, '').replace(',', '.'));
+    return isNaN(n) ? 0 : n;
+  }
+
+  function updateHoursPreview(){
+    const diasSemanaRaw = document.getElementById('h-dias').value;
+    const horasRaw = document.getElementById('h-horas').value;
+    const almocoRaw = document.getElementById('h-almoco').value;
+    const mesEl = document.getElementById('h-mes');
+    if(!diasSemanaRaw || !horasRaw || !mesEl.value){
+      document.getElementById('prev-dias').textContent = '—';
+      document.getElementById('prev-liquida').textContent = '—';
+      document.getElementById('prev-mes').textContent = '—';
+      return;
+    }
+    const diasSemana = parseFloat(diasSemanaRaw) || 0;
+    const horas = parseFloat(horasRaw) || 0;
+    const almocoMin = parseAlmoco(almocoRaw);
+    const horasLiquidas = Math.max(horas - (almocoMin / 60), 0);
+    const diasTrabalhados = calcularDiasTrabalhados(diasSemana, Number(mesEl.value));
+    const mensal = horasLiquidas * diasTrabalhados;
+    document.getElementById('prev-dias').textContent = diasTrabalhados.toLocaleString('pt-BR', {maximumFractionDigits:1});
+    document.getElementById('prev-liquida').textContent = horasLiquidas.toLocaleString('pt-BR', {maximumFractionDigits:2}) + 'h';
+    document.getElementById('prev-mes').textContent = mensal.toLocaleString('pt-BR', {maximumFractionDigits:1}) + 'h';
+  }
+
+  function maskCurrency(input){
+    let digits = input.value.replace(/\D/g, '');
+    if(!digits){ input.value = ''; return; }
+    digits = digits.replace(/^0+(?=\d)/, '');
+    while(digits.length < 3) digits = '0' + digits;
+    let cents = digits.slice(-2);
+    let intPart = digits.slice(0, -2).replace(/^0+(?=\d)/, '');
+    intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    input.value = intPart + ',' + cents;
+  }
+
+  function parseMasked(v){
+    if(!v) return 0;
+    const n = parseFloat(v.replace(/\./g, '').replace(',', '.'));
+    return isNaN(n) ? 0 : n;
+  }
+
+  function handleValueInput(input){
+    maskCurrency(input);
+    updateFixedTotal();
+  }
+
+  function attachEnterToValueField(input){
+    input.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter'){
+        e.preventDefault();
+        const campos = Array.from(document.querySelectorAll('#v-salario, .fval input'));
+        const idx = campos.indexOf(input);
+        if(idx > -1 && idx < campos.length - 1){
+          campos[idx + 1].focus();
+        } else {
+          input.blur();
+        }
+      }
+    });
+  }
+
+  function renderFixedItem(label, value, role){
+    fixedCounter++;
+    const id = 'fx-' + fixedCounter;
+    const div = document.createElement('div');
+    div.className = 'fixed-item';
+    div.dataset.id = id;
+    if(role) div.dataset.role = role;
+    div.innerHTML = `
+      <div class="fname"><input type="text" value="${label}" placeholder="Nome do custo"></div>
+      <div class="fval"><input type="text" inputmode="numeric" value="${value}" placeholder="0,00" oninput="handleValueInput(this)" enterkeyhint="next"></div>
+      <button class="remove" title="remover" onclick="removeFixed('${id}')">×</button>
+    `;
+    document.getElementById('fixed-list').appendChild(div);
+    div.querySelectorAll('input').forEach(inp => {
+      inp.addEventListener('focus', () => {
+        setTimeout(() => inp.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+      });
+    });
+    attachEnterToValueField(div.querySelector('.fval input'));
+  }
+
+  function addCustomFixed(){
+    renderFixedItem('', '');
+    updateFixedTotal();
+  }
+
+  function removeFixed(id){
+    const el = document.querySelector(`.fixed-item[data-id="${id}"]`);
+    if(el) el.remove();
+    updateFixedTotal();
+  }
+
+  function updateFixedTotal(){
+    let totalCustos = 0;
+    document.querySelectorAll('.fixed-item').forEach(item => {
+      totalCustos += parseMasked(item.querySelector('.fval input').value);
+    });
+    const salario = parseMasked(document.getElementById('v-salario').value);
+    const diferenca = salario - totalCustos;
+    const soma = totalCustos + salario;
+
+    document.getElementById('fixed-total').textContent = 'R$ ' + fmtBRL(totalCustos);
+    document.getElementById('salario-total').textContent = 'R$ ' + fmtBRL(salario);
+
+    const diferencaEl = document.getElementById('diferenca-total');
+    diferencaEl.textContent = (diferenca < 0 ? '-R$ ' + fmtBRL(Math.abs(diferenca)) : 'R$ ' + fmtBRL(diferenca));
+    diferencaEl.classList.remove('positivo', 'negativo');
+    diferencaEl.classList.add(diferenca < 0 ? 'negativo' : 'positivo');
+
+    document.getElementById('soma-total').textContent = 'R$ ' + fmtBRL(soma);
+  }
+
+  function calcularResultado(){
+    const horas = parseFloat(document.getElementById('h-horas').value) || 0;
+    const almocoMin = parseAlmoco(document.getElementById('h-almoco').value);
+    const horasLiquidasDia = Math.max(horas - (almocoMin / 60), 0);
+    const diasTrabalhados = parseFloat(jornada.diasNoMes) || 0;
+    const horasMes = horasLiquidasDia * diasTrabalhados;
+
+    const salarioValor = parseMasked(document.getElementById('v-salario').value);
+    let totalCustos = 0;
+    document.querySelectorAll('.fixed-item').forEach(item => {
+      totalCustos += parseMasked(item.querySelector('.fval input').value);
+    });
+    const totalGeral = salarioValor + totalCustos;
+
+    const perc = parseFloat(document.getElementById('v-perc').value) || 0;
+    const custoBase = horasMes > 0 ? totalGeral / horasMes : 0;
+    const acrescimo = custoBase * (perc / 100);
+    const custoFinal = custoBase + acrescimo;
+
+    document.getElementById('r-salario').textContent = 'R$ ' + fmtBRL(salarioValor);
+    document.getElementById('r-fixos').textContent = 'R$ ' + fmtBRL(totalCustos);
+    document.getElementById('r-horas').textContent = horasMes.toLocaleString('pt-BR', {maximumFractionDigits:1}) + 'h';
+    document.getElementById('r-base').textContent = 'R$ ' + fmtBRL(custoBase);
+    document.getElementById('r-perc-label').textContent = perc.toLocaleString('pt-BR');
+    document.getElementById('r-variavel').textContent = 'R$ ' + fmtBRL(acrescimo);
+    document.getElementById('r-total').textContent = fmtBRL(custoFinal);
+
+    const resultado = {
+      salario: fmtBRL(salarioValor),
+      totalFixo: fmtBRL(totalCustos),
+      horasMes: horasMes.toLocaleString('pt-BR', {maximumFractionDigits:1}),
+      custoBase: fmtBRL(custoBase),
+      percentual: perc.toLocaleString('pt-BR'),
+      valorFinal: fmtBRL(custoFinal)
+    };
+    ultimoResultado = resultado;
+
+    salvarHistorico({
+      data: new Date().toLocaleString('pt-BR'),
+      nome: contato.nome,
+      salario: resultado.salario,
+      fixos: resultado.totalFixo,
+      horas: resultado.horasMes,
+      percentual: resultado.percentual,
+      valorHora: resultado.valorFinal
+    });
+
+    goTo(4);
+    enviarFinal(resultado);
+  }
+
+  function salvarHistorico(registro){
+    try{
+      const chave = 'recibo_historico';
+      const atual = JSON.parse(localStorage.getItem(chave) || '[]');
+      atual.unshift(registro);
+      localStorage.setItem(chave, JSON.stringify(atual.slice(0, 50)));
+    }catch(e){ /* localStorage pode estar indisponível neste navegador */ }
+  }
+
+  function abrirHistorico(){
+    const lista = document.getElementById('historico-lista');
+    let registros = [];
+    try{
+      registros = JSON.parse(localStorage.getItem('recibo_historico') || '[]');
+    }catch(e){ registros = []; }
+
+    if(!registros.length){
+      lista.innerHTML = '<p class="hist-empty">Nenhum cálculo salvo ainda neste aparelho.</p>';
+    } else {
+      lista.innerHTML = registros.map(r => `
+        <div class="hist-item">
+          <div class="hist-data">${r.data}</div>
+          <div class="hist-nome">${r.nome || 'Sem nome'}</div>
+          <div>Salário: R$ ${r.salario} · Custos fixos: R$ ${r.fixos}</div>
+          <div>Horas no mês: ${r.horas}h · Variável: ${r.percentual}%</div>
+          <div class="hist-valor">Valor-hora: R$ ${r.valorHora}</div>
+        </div>
+      `).join('');
+    }
+    abrirModal('modal-historico');
+  }
+
+  // inicializa lista de custos fixos padrão
+  DEFAULT_FIXED_ITEMS.forEach(label => renderFixedItem(label, ''));
+  updateFixedTotal();
+  popularMeses();
+  updateHoursPreview();
+  attachEnterToValueField(document.getElementById('v-salario'));
+
+  // ---------- Enter avança para o próximo campo (estilo Typeform) ----------
+  document.querySelectorAll('input[data-enter-next], input[data-enter-action]').forEach(inp => {
+    inp.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter'){
+        e.preventDefault();
+        const nextId = inp.dataset.enterNext;
+        const action = inp.dataset.enterAction;
+        if(nextId){
+          const nextEl = document.getElementById(nextId);
+          if(nextEl) nextEl.focus();
+        } else if(action && typeof window[action] === 'function'){
+          window[action]();
+        }
+      }
+    });
+  });
+
+  // ---------- Mantém o campo focado visível acima do teclado no celular ----------
+  document.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('focus', () => {
+      setTimeout(() => {
+        inp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
+    });
+  });
+
+  if(window.visualViewport){
+    const mainEl = document.querySelector('main');
+    const basePadding = 40;
+    window.visualViewport.addEventListener('resize', () => {
+      const kbHeight = Math.max(window.innerHeight - window.visualViewport.height, 0);
+      mainEl.style.paddingBottom = (basePadding + kbHeight) + 'px';
+    });
+  }
+
+</script>
+</body>
+</html>
